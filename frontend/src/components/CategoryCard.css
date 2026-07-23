@@ -1,0 +1,37 @@
+.category-section{
+    background:#f5f7fb;
+    padding:60px 40px;
+    text-align:center;
+}
+
+.category-section h2{
+    margin-bottom:40px;
+    color:#1f2937;
+    font-size:35px;
+}
+
+.category-container{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:25px;
+}
+
+.category-card{
+    background:white;
+    border-radius:18px;
+    padding:30px;
+    box-shadow:0 8px 20px rgba(0,0,0,.12);
+    transition:.3s;
+    cursor:pointer;
+}
+
+.category-card:hover{
+    transform:translateY(-10px);
+    background:#2563eb;
+    color:white;
+}
+
+.category-icon{
+    font-size:45px;
+    margin-bottom:15px;
+}
