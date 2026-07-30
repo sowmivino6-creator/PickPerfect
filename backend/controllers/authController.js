@@ -1,5 +1,4 @@
 const User = require("../models/User");
-const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 // Generate JWT Token
@@ -12,9 +11,9 @@ const generateToken = (id) => {
 // ================= REGISTER =================
 const registerUser = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, phone, address } = req.body;
 
-    // Check if user exists
+    // Check User
     const userExists = await User.findOne({ email });
 
     if (userExists) {
@@ -24,28 +23,24 @@ const registerUser = async (req, res) => {
       });
     }
 
-    // Hash Password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
     // Create User
     const user = await User.create({
       name,
       email,
-      password: hashedPassword,
+      password,
+      phone,
+      address,
     });
 
     res.status(201).json({
       success: true,
-      message: "User Registered Successfully",
+      message: "Registration Successful",
       token: generateToken(user._id),
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-      },
+      user,
     });
   } catch (error) {
+    console.log(error);
+
     res.status(500).json({
       success: false,
       message: error.message,
@@ -58,21 +53,23 @@ const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    // Find User
     const user = await User.findOne({ email });
 
     if (!user) {
       return res.status(400).json({
         success: false,
-        message: "Invalid Email or Password",
+        message: "Invalid Email",
       });
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    // Compare Password
+    const isMatch = await user.matchPassword(password);
 
     if (!isMatch) {
       return res.status(400).json({
         success: false,
-        message: "Invalid Email or Password",
+        message: "Invalid Password",
       });
     }
 
@@ -80,13 +77,11 @@ const loginUser = async (req, res) => {
       success: true,
       message: "Login Successful",
       token: generateToken(user._id),
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-      },
+      user,
     });
   } catch (error) {
+    console.log(error);
+
     res.status(500).json({
       success: false,
       message: error.message,
@@ -94,10 +89,10 @@ const loginUser = async (req, res) => {
   }
 };
 
-// ================= PROFILE =================
+// ================= GET PROFILE =================
 const getProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select("-password");
+    const user = await User.findById(req.params.id).select("-password");
 
     if (!user) {
       return res.status(404).json({
@@ -111,6 +106,8 @@ const getProfile = async (req, res) => {
       user,
     });
   } catch (error) {
+    console.log(error);
+
     res.status(500).json({
       success: false,
       message: error.message,

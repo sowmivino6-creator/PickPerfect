@@ -1,50 +1,79 @@
 const Razorpay = require("razorpay");
+const crypto = require("crypto");
 
+// Razorpay Instance
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
+// ================= CREATE ORDER =================
 const createOrder = async (req, res) => {
   try {
     const { amount } = req.body;
 
-    if (!amount || amount <= 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid Amount",
-      });
-    }
-
     const options = {
-      amount: Number(amount) * 100,
+      amount: Number(amount) * 100, // Convert to paise
       currency: "INR",
       receipt: `receipt_${Date.now()}`,
     };
 
     const order = await razorpay.orders.create(options);
 
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
       order,
     });
-
   } catch (error) {
-    console.log("=================================");
-    console.log("RAZORPAY ERROR");
     console.log(error);
-    console.log("Message :", error.message);
-    console.log("Status :", error.statusCode);
-    console.log("=================================");
 
-    return res.status(500).json({
+    res.status(500).json({
       success: false,
       message: error.message,
-      error: error,
+    });
+  }
+};
+
+// ================= VERIFY PAYMENT =================
+const verifyPayment = async (req, res) => {
+  try {
+    const {
+      razorpay_order_id,
+      razorpay_payment_id,
+      razorpay_signature,
+    } = req.body;
+
+    const body =
+      razorpay_order_id + "|" + razorpay_payment_id;
+
+    const expectedSignature = crypto
+      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+      .update(body.toString())
+      .digest("hex");
+
+    if (expectedSignature === razorpay_signature) {
+      return res.status(200).json({
+        success: true,
+        message: "Payment Verified Successfully",
+      });
+    }
+
+    return res.status(400).json({
+      success: false,
+      message: "Invalid Payment Signature",
+    });
+
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).json({
+      success: false,
+      message: error.message,
     });
   }
 };
 
 module.exports = {
   createOrder,
+  verifyPayment,
 };

@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 import API from "../api/api";
-import Footer from "../components/Footer";
-import { Link } from "react-router-dom";
-import "./Products.css";
+import { useNavigate } from "react-router-dom";
 
 function Products() {
+  const navigate = useNavigate();
+
   const [products, setProducts] = useState([]);
   const [search, setSearch] = useState("");
-  const [category, setCategory] = useState("");
+
+  const user = JSON.parse(localStorage.getItem("user"));
 
   useEffect(() => {
     fetchProducts();
@@ -16,22 +17,22 @@ function Products() {
   const fetchProducts = async () => {
     try {
       const res = await API.get("/products");
+
       setProducts(res.data.products);
     } catch (error) {
       console.log(error);
-      alert("Failed to load products");
+      alert("Failed to Load Products");
     }
   };
 
   const addToCart = async (productId) => {
+    if (!user) {
+      alert("Please Login First");
+      navigate("/login");
+      return;
+    }
+
     try {
-      const user = JSON.parse(localStorage.getItem("user"));
-
-      if (!user) {
-        alert("Please Login First");
-        return;
-      }
-
       await API.post("/cart/add", {
         user: user._id,
         product: productId,
@@ -41,106 +42,128 @@ function Products() {
       alert("✅ Product Added To Cart");
     } catch (error) {
       console.log(error);
-      alert("Failed To Add Product");
+      alert("Add To Cart Failed");
     }
   };
 
-  const filteredProducts = products.filter((item) => {
-    const matchesSearch = item.name
-      .toLowerCase()
-      .includes(search.toLowerCase());
-
-    const matchesCategory =
-      category === "" || item.category === category;
-
-    return matchesSearch && matchesCategory;
-  });
+  const filteredProducts = products.filter((item) =>
+    item.name.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
-    <>
-      <div className="products-page">
-        <h1>🔥 Trending Products</h1>
+    <div
+      style={{
+        minHeight: "100vh",
+        background: "#f5f5f5",
+        padding: "30px",
+      }}
+    >
+      <h1
+        style={{
+          textAlign: "center",
+          color: "#6C63FF",
+          marginBottom: "25px",
+        }}
+      >
+        🛍 PickPerfect Products
+      </h1>
 
-        <div
+      <div
+        style={{
+          textAlign: "center",
+          marginBottom: "30px",
+        }}
+      >
+        <input
+          type="text"
+          placeholder="Search Products..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
           style={{
-            display: "flex",
-            gap: "15px",
-            marginBottom: "25px",
-            justifyContent: "center",
-            flexWrap: "wrap",
+            width: "350px",
+            padding: "12px",
+            borderRadius: "8px",
+            border: "1px solid gray",
+            fontSize: "16px",
           }}
-        >
-          <input
-            type="text"
-            placeholder="🔍 Search Products..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            style={{
-              padding: "12px",
-              width: "250px",
-              borderRadius: "8px",
-              border: "1px solid #ccc",
-            }}
-          />
-
-          <select
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            style={{
-              padding: "12px",
-              borderRadius: "8px",
-            }}
-          >
-            <option value="">All Categories</option>
-            <option value="Mobiles">Mobiles</option>
-            <option value="Electronics">Electronics</option>
-            <option value="Fashion">Fashion</option>
-            <option value="Shoes">Shoes</option>
-          </select>
-        </div>
-
-        <div className="product-grid">
-          {filteredProducts.map((item) => (
-            <div className="product-card" key={item._id}>
-              <img
-                src={item.image}
-                alt={item.name}
-                className="product-image"
-              />
-
-              <h2>{item.name}</h2>
-
-              <div className="price">
-                <h3>₹{item.price}</h3>
-              </div>
-
-              <p>
-                <strong>{item.category}</strong>
-              </p>
-
-              <p>{item.description}</p>
-
-              <div className="button-group">
-                <button
-                  className="cart-btn"
-                  onClick={() => addToCart(item._id)}
-                >
-                  🛒 Add to Cart
-                </button>
-
-                <Link to={`/product/${item._id}`}>
-                  <button className="details-btn">
-                    View Details
-                  </button>
-                </Link>
-              </div>
-            </div>
-          ))}
-        </div>
+        />
       </div>
 
-      <Footer />
-    </>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns:
+            "repeat(auto-fit,minmax(280px,1fr))",
+          gap: "25px",
+        }}
+      >
+        {filteredProducts.map((product) => (
+          <div
+            key={product._id}
+            style={{
+              background: "#fff",
+              borderRadius: "12px",
+              padding: "20px",
+              textAlign: "center",
+              boxShadow: "0 5px 15px rgba(0,0,0,.15)",
+            }}
+          >
+            <img
+              src={product.image}
+              alt={product.name}
+              style={{
+                width: "220px",
+                height: "220px",
+                objectFit: "cover",
+                borderRadius: "10px",
+              }}
+            />
+
+            <h2>{product.name}</h2>
+
+            <p>{product.description}</p>
+
+            <h3 style={{ color: "green" }}>
+              ₹ {product.price}
+            </h3>
+
+            <button
+              onClick={() => addToCart(product._id)}
+              style={{
+                padding: "10px 20px",
+                background: "#6C63FF",
+                color: "#fff",
+                border: "none",
+                borderRadius: "6px",
+                cursor: "pointer",
+                marginTop: "10px",
+              }}
+            >
+              Add To Cart
+            </button>
+
+            <br />
+            <br />
+
+            <button
+              onClick={() =>
+                navigate(`/product/${product._id}`)
+              }
+              style={{
+                padding: "10px 20px",
+                background: "#28a745",
+                color: "#fff",
+                border: "none",
+                borderRadius: "6px",
+                cursor: "pointer",
+              }}
+            >
+              View Details
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 

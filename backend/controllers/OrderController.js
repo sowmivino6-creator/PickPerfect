@@ -1,14 +1,24 @@
 const Order = require("../models/Order");
 
-// Place Order
+// ================= PLACE ORDER =================
 const placeOrder = async (req, res) => {
   try {
-    const { user, products, totalPrice } = req.body;
+    const {
+      user,
+      products,
+      totalPrice,
+      paymentId,
+      orderId,
+      paymentStatus,
+    } = req.body;
 
     const order = await Order.create({
       user,
       products,
       totalPrice,
+      paymentId,
+      orderId,
+      paymentStatus,
       status: "Pending",
     });
 
@@ -18,6 +28,8 @@ const placeOrder = async (req, res) => {
       order,
     });
   } catch (error) {
+    console.log(error);
+
     res.status(500).json({
       success: false,
       message: error.message,
@@ -25,18 +37,22 @@ const placeOrder = async (req, res) => {
   }
 };
 
-// Get All Orders
+// ================= GET ALL ORDERS =================
 const getOrders = async (req, res) => {
   try {
     const orders = await Order.find()
       .populate("user")
-      .populate("products.product");
+      .populate("products.product")
+      .sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,
+      count: orders.length,
       orders,
     });
   } catch (error) {
+    console.log(error);
+
     res.status(500).json({
       success: false,
       message: error.message,
@@ -44,7 +60,7 @@ const getOrders = async (req, res) => {
   }
 };
 
-// Get Single Order
+// ================= GET SINGLE ORDER =================
 const getOrder = async (req, res) => {
   try {
     const order = await Order.findById(req.params.id)
@@ -63,6 +79,8 @@ const getOrder = async (req, res) => {
       order,
     });
   } catch (error) {
+    console.log(error);
+
     res.status(500).json({
       success: false,
       message: error.message,
@@ -70,7 +88,7 @@ const getOrder = async (req, res) => {
   }
 };
 
-// Update Order
+// ================= UPDATE ORDER =================
 const updateOrder = async (req, res) => {
   try {
     const order = await Order.findByIdAndUpdate(
@@ -95,6 +113,8 @@ const updateOrder = async (req, res) => {
       order,
     });
   } catch (error) {
+    console.log(error);
+
     res.status(500).json({
       success: false,
       message: error.message,
@@ -102,7 +122,7 @@ const updateOrder = async (req, res) => {
   }
 };
 
-// Delete Order
+// ================= DELETE ORDER =================
 const deleteOrder = async (req, res) => {
   try {
     const order = await Order.findByIdAndDelete(req.params.id);
@@ -119,6 +139,8 @@ const deleteOrder = async (req, res) => {
       message: "Order Deleted Successfully",
     });
   } catch (error) {
+    console.log(error);
+
     res.status(500).json({
       success: false,
       message: error.message,

@@ -1,39 +1,54 @@
-import API from "../api/api";
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import API from "../api/api";
 
 function Login() {
   const navigate = useNavigate();
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
 
-  const handleLogin = async (e) => {
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!email || !password) {
-      alert("Please fill all fields");
-      return;
-    }
+    setLoading(true);
 
     try {
-      const res = await API.post("/auth/login", {
-        email,
-        password,
-      });
+      const res = await API.post("/auth/login", formData);
 
-      // Save Token
-      localStorage.setItem("token", res.data.token);
+      if (res.data.success) {
+        localStorage.setItem("token", res.data.token);
+        localStorage.setItem(
+          "user",
+          JSON.stringify(res.data.user)
+        );
 
-      // Save User
-      localStorage.setItem("user", JSON.stringify(res.data.user));
+        alert("✅ Login Successful");
 
-      alert(res.data.message);
+        navigate("/products");
+      }
 
-      navigate("/");
     } catch (error) {
-      alert(error.response?.data?.message || "Login Failed");
+      console.log(error);
+
+      alert(
+        error.response?.data?.message ||
+          "Login Failed"
+      );
     }
+
+    setLoading(false);
   };
 
   return (
@@ -43,44 +58,76 @@ function Login() {
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        background: "linear-gradient(135deg,#667eea,#764ba2)",
+        background:
+          "linear-gradient(135deg,#667eea,#764ba2)",
       }}
     >
       <form
-        onSubmit={handleLogin}
+        onSubmit={handleSubmit}
         style={{
+          width: "400px",
           background: "#fff",
-          padding: "40px",
-          borderRadius: "15px",
-          width: "350px",
-          textAlign: "center",
+          padding: "35px",
+          borderRadius: "12px",
+          boxShadow: "0 10px 30px rgba(0,0,0,.2)",
         }}
       >
-        <h2>Login</h2>
+        <h1
+          style={{
+            textAlign: "center",
+            color: "#6C63FF",
+            marginBottom: "25px",
+          }}
+        >
+          Login
+        </h1>
 
         <input
           type="email"
+          name="email"
           placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          value={formData.email}
+          onChange={handleChange}
+          required
           style={inputStyle}
         />
 
         <input
           type="password"
+          name="password"
           placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          value={formData.password}
+          onChange={handleChange}
+          required
           style={inputStyle}
         />
 
-        <button type="submit" style={btnStyle}>
-          Login
+        <button
+          type="submit"
+          disabled={loading}
+          style={buttonStyle}
+        >
+          {loading ? "Please Wait..." : "Login"}
         </button>
 
-        <p style={{ marginTop: "20px" }}>
-          New User?
-          <Link to="/signup"> Signup</Link>
+        <p
+          style={{
+            textAlign: "center",
+            marginTop: "20px",
+          }}
+        >
+          Don't have an account?
+          <Link
+            to="/signup"
+            style={{
+              textDecoration: "none",
+              color: "#6C63FF",
+              fontWeight: "bold",
+              marginLeft: "5px",
+            }}
+          >
+            Signup
+          </Link>
         </p>
       </form>
     </div>
@@ -90,20 +137,23 @@ function Login() {
 const inputStyle = {
   width: "100%",
   padding: "12px",
-  margin: "10px 0",
-  borderRadius: "8px",
+  marginBottom: "18px",
+  borderRadius: "6px",
   border: "1px solid #ccc",
+  fontSize: "16px",
+  boxSizing: "border-box",
 };
 
-const btnStyle = {
+const buttonStyle = {
   width: "100%",
   padding: "12px",
-  background: "#6a1b9a",
+  background: "#6C63FF",
   color: "#fff",
   border: "none",
-  borderRadius: "8px",
+  borderRadius: "6px",
   cursor: "pointer",
-  fontSize: "16px",
+  fontSize: "17px",
+  fontWeight: "bold",
 };
 
 export default Login;

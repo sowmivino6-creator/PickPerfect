@@ -1,15 +1,17 @@
-import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 import API from "../api/api";
 
 function Admin() {
   const [products, setProducts] = useState([]);
 
-  const [name, setName] = useState("");
-  const [price, setPrice] = useState("");
-  const [image, setImage] = useState("");
-  const [category, setCategory] = useState("");
-  const [description, setDescription] = useState("");
+  const [formData, setFormData] = useState({
+    name: "",
+    description: "",
+    price: "",
+    category: "",
+    image: "",
+    stock: "",
+  });
 
   useEffect(() => {
     fetchProducts();
@@ -19,179 +21,177 @@ function Admin() {
     try {
       const res = await API.get("/products");
       setProducts(res.data.products);
-    } catch (err) {
-      console.log(err);
+    } catch (error) {
+      console.log(error);
     }
   };
 
-  const addProduct = async (e) => {
-    e.preventDefault();
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
 
+  const addProduct = async () => {
     try {
-      const res = await API.post("/products/add", {
-        name,
-        price,
-        image,
-        category,
-        description,
+      await API.post("/products/add", formData);
+
+      alert("✅ Product Added Successfully");
+
+      setFormData({
+        name: "",
+        description: "",
+        price: "",
+        category: "",
+        image: "",
+        stock: "",
       });
 
-      alert(res.data.message);
-
-      setName("");
-      setPrice("");
-      setImage("");
-      setCategory("");
-      setDescription("");
-
       fetchProducts();
-    } catch (err) {
-      alert(err.response?.data?.message || "Failed To Add Product");
+    } catch (error) {
+      console.log(error);
+      alert("Failed");
     }
   };
 
   const deleteProduct = async (id) => {
-    if (!window.confirm("Delete this product?")) return;
-
     try {
-      await API.delete(`/products/${id}`);
+      await API.delete(`/products/delete/${id}`);
 
-      alert("✅ Product Deleted");
+      alert("Deleted Successfully");
 
       fetchProducts();
-    } catch (err) {
-      alert("Delete Failed");
+    } catch (error) {
+      console.log(error);
     }
   };
 
   return (
     <div
       style={{
-        maxWidth: "1000px",
-        margin: "30px auto",
-        padding: "20px",
+        padding: "30px",
+        background: "#f4f4f4",
+        minHeight: "100vh",
       }}
     >
-      <h1 style={{ textAlign: "center" }}>
-        🛠 Admin Dashboard
+      <h1
+        style={{
+          textAlign: "center",
+          color: "#6C63FF",
+        }}
+      >
+        Admin Dashboard
       </h1>
 
-      <form onSubmit={addProduct}>
+      <div
+        style={{
+          background: "#fff",
+          padding: "25px",
+          borderRadius: "12px",
+          marginBottom: "30px",
+        }}
+      >
+        <h2>Add Product</h2>
 
         <input
-          type="text"
+          name="name"
           placeholder="Product Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
+          value={formData.name}
+          onChange={handleChange}
           style={inputStyle}
         />
 
         <input
-          type="number"
-          placeholder="Price"
-          value={price}
-          onChange={(e) => setPrice(e.target.value)}
-          style={inputStyle}
-        />
-
-        <input
-          type="text"
-          placeholder="Image URL"
-          value={image}
-          onChange={(e) => setImage(e.target.value)}
-          style={inputStyle}
-        />
-
-        <input
-          type="text"
-          placeholder="Category"
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          style={inputStyle}
-        />
-
-        <textarea
+          name="description"
           placeholder="Description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          style={{
-            ...inputStyle,
-            height: "100px",
-          }}
+          value={formData.description}
+          onChange={handleChange}
+          style={inputStyle}
         />
 
-        <button style={addButton}>
-          ➕ Add Product
+        <input
+          name="price"
+          placeholder="Price"
+          value={formData.price}
+          onChange={handleChange}
+          style={inputStyle}
+        />
+
+        <input
+          name="category"
+          placeholder="Category"
+          value={formData.category}
+          onChange={handleChange}
+          style={inputStyle}
+        />
+
+        <input
+          name="image"
+          placeholder="Image URL"
+          value={formData.image}
+          onChange={handleChange}
+          style={inputStyle}
+        />
+
+        <input
+          name="stock"
+          placeholder="Stock"
+          value={formData.stock}
+          onChange={handleChange}
+          style={inputStyle}
+        />
+
+        <button
+          onClick={addProduct}
+          style={{
+            background: "#6C63FF",
+            color: "#fff",
+            padding: "12px 25px",
+            border: "none",
+            borderRadius: "6px",
+            cursor: "pointer",
+          }}
+        >
+          Add Product
         </button>
+      </div>
 
-      </form>
+      <h2>All Products</h2>
 
-      <hr style={{ margin: "40px 0" }} />
+      {products.map((product) => (
+        <div
+          key={product._id}
+          style={{
+            background: "#fff",
+            marginBottom: "15px",
+            padding: "15px",
+            borderRadius: "10px",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <div>
+            <h3>{product.name}</h3>
+            <p>₹ {product.price}</p>
+          </div>
 
-      <h2>📦 Product List</h2>
-
-      {products.length === 0 ? (
-        <h3>No Products Available</h3>
-      ) : (
-        products.map((item) => (
-          <div
-            key={item._id}
+          <button
+            onClick={() => deleteProduct(product._id)}
             style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "20px",
-              border: "1px solid #ddd",
-              borderRadius: "10px",
-              padding: "15px",
-              marginBottom: "15px",
+              background: "red",
+              color: "#fff",
+              border: "none",
+              padding: "10px 18px",
+              borderRadius: "6px",
+              cursor: "pointer",
             }}
           >
-            <img
-              src={item.image}
-              alt={item.name}
-              width="120"
-              height="120"
-              style={{
-                objectFit: "cover",
-                borderRadius: "10px",
-              }}
-            />
-
-            <div style={{ flex: 1 }}>
-              <h3>{item.name}</h3>
-
-              <h2>₹{item.price}</h2>
-
-              <p>
-                <b>Category:</b> {item.category}
-              </p>
-
-              <p>{item.description}</p>
-            </div>
-
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "10px",
-              }}
-            >
-              <Link to={`/edit/${item._id}`}>
-                <button style={editButton}>
-                  ✏️ Edit
-                </button>
-              </Link>
-
-              <button
-                style={deleteButton}
-                onClick={() => deleteProduct(item._id)}
-              >
-                ❌ Delete
-              </button>
-            </div>
-          </div>
-        ))
-      )}
+            Delete
+          </button>
+        </div>
+      ))}
     </div>
   );
 }
@@ -201,38 +201,8 @@ const inputStyle = {
   padding: "12px",
   marginBottom: "15px",
   border: "1px solid #ccc",
-  borderRadius: "8px",
-  fontSize: "15px",
+  borderRadius: "6px",
   boxSizing: "border-box",
-};
-
-const addButton = {
-  width: "100%",
-  padding: "14px",
-  background: "#28a745",
-  color: "#fff",
-  border: "none",
-  borderRadius: "8px",
-  cursor: "pointer",
-  fontSize: "16px",
-};
-
-const editButton = {
-  background: "#2196f3",
-  color: "#fff",
-  border: "none",
-  padding: "10px 18px",
-  borderRadius: "6px",
-  cursor: "pointer",
-};
-
-const deleteButton = {
-  background: "#f44336",
-  color: "#fff",
-  border: "none",
-  padding: "10px 18px",
-  borderRadius: "6px",
-  cursor: "pointer",
 };
 
 export default Admin;
