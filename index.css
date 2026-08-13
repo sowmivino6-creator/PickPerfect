@@ -1,0 +1,13 @@
+.nav-link {
+  font-weight: bold;
+  transition: 0.3s;
+}
+
+.nav-link:hover {
+  color: yellow !important;
+  transform: scale(1.1);
+}
+
+.navbar-brand:hover {
+  color: #ffd700 !important;
+}
