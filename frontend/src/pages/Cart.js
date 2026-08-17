@@ -11,6 +11,7 @@ function Cart() {
 
   useEffect(() => {
     fetchCart();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchCart = async () => {
@@ -33,11 +34,12 @@ function Cart() {
     try {
       await API.delete(`/cart/${id}`);
 
-      fetchCart();
+      await fetchCart();
 
       alert("✅ Item Removed Successfully");
     } catch (error) {
       console.log(error);
+      alert("❌ Failed to Remove Item");
     }
   };
 
@@ -57,17 +59,16 @@ function Cart() {
         currency: data.order.currency,
         name: "PickPerfect",
         description: "Shopping Payment",
-        order_id: data.order.id,        handler: async function (response) {
+        order_id: data.order.id,
+
+        handler: async function (response) {
           try {
             const verify = await API.post(
               "/payment/verify-payment",
               {
-                razorpay_order_id:
-                  response.razorpay_order_id,
-                razorpay_payment_id:
-                  response.razorpay_payment_id,
-                razorpay_signature:
-                  response.razorpay_signature,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
               }
             );
 
@@ -83,11 +84,9 @@ function Cart() {
 
                 totalPrice: total,
 
-                paymentId:
-                  response.razorpay_payment_id,
+                paymentId: response.razorpay_payment_id,
 
-                orderId:
-                  response.razorpay_order_id,
+                orderId: response.razorpay_order_id,
 
                 paymentStatus: "Paid",
               });
@@ -105,7 +104,7 @@ function Cart() {
             }
           } catch (error) {
             console.log(error);
-            alert("Verification Failed");
+            alert("❌ Verification Failed");
           }
         },
 
@@ -123,13 +122,13 @@ function Cart() {
       const razorpay = new window.Razorpay(options);
 
       razorpay.open();
-
     } catch (error) {
       console.log(error);
-      alert("Payment Failed");
+      alert("❌ Payment Failed");
     }
   };
-    return (
+
+  return (
     <div
       style={{
         minHeight: "100vh",

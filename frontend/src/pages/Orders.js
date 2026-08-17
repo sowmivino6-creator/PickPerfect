@@ -8,6 +8,7 @@ function Orders() {
 
   useEffect(() => {
     fetchOrders();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchOrders = async () => {
@@ -46,11 +47,7 @@ function Orders() {
       </h1>
 
       {orders.length === 0 ? (
-        <h2
-          style={{
-            textAlign: "center",
-          }}
-        >
+        <h2 style={{ textAlign: "center" }}>
           No Orders Found
         </h2>
       ) : (
@@ -67,11 +64,7 @@ function Orders() {
           >
             <h3>
               Order ID :
-              <span
-                style={{
-                  color: "#6C63FF",
-                }}
-              >
+              <span style={{ color: "#6C63FF" }}>
                 {" "}
                 {order._id}
               </span>
@@ -96,11 +89,7 @@ function Orders() {
 
             <h3>
               Status :
-              <span
-                style={{
-                  color: "#ff9800",
-                }}
-              >
+              <span style={{ color: "#ff9800" }}>
                 {" "}
                 {order.status}
               </span>
@@ -133,9 +122,7 @@ function Orders() {
 
                 <div>
                   <h3>{item.product.name}</h3>
-
                   <p>Price : ₹{item.product.price}</p>
-
                   <p>Quantity : {item.quantity}</p>
                 </div>
               </div>

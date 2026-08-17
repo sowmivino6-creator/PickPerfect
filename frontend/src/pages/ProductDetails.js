@@ -12,6 +12,7 @@ function ProductDetails() {
 
   useEffect(() => {
     fetchProduct();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchProduct = async () => {
@@ -124,9 +125,7 @@ function ProductDetails() {
             Category : {product.category}
           </h3>
 
-          <h3>
-            Stock : {product.stock}
-          </h3>
+          <h3>Stock : {product.stock}</h3>
 
           <button
             onClick={addToCart}
